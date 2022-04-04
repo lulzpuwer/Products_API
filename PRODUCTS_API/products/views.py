@@ -1,18 +1,40 @@
-from urllib import response
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import Product_serializer
 from .models import Product
+from rest_framework import status
 
-@api_view(['GET'])
+
+
+@api_view(['GET', 'POST'])
 def products_list(request):
-  products = Product.objects.all()
-  serializer = Product_serializer(products, many = True)
+  if request.method == 'GET':
+    products = Product.objects.all()
+    serializer = Product_serializer(products, many = True)
+    return Response(serializer.data)
+  elif request.method == 'POST':
+    serializer = Product_serializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+@api_view('GET', 'PUT', 'DELETE')
+def product_detail(request, pk):
+  product = get_object_or_404(Product, pk=pk)
+  if request.method == 'GET':
+   
+    serializer = Product_serializer(product)
+    return Response(serializer.data)
+  elif request.methods == 'PUT':
+   
+    serializer = Product_serializer(product, data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
+  elif request.methods == 'DELETE':
+    product.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
-  return Response(serializer.data)
+  
 
-@api_view('GET')
-def product_detail(requst, pk):
-  print(pk)
-  return Response(pk)
